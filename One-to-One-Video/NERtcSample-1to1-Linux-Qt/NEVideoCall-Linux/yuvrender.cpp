@@ -32,15 +32,44 @@ void YuvRender::showYuv(std::vector<unsigned char> &data_y_, std::vector<unsigne
     data_y = data_y_;
     data_u = data_u_;
     data_v = data_v_;
-    video_w = width;
-    video_h = height;
+    if (video_w != width || video_h != height) {
+        int dst_x = 0;
+        int dst_y = 0;
+        int dst_w = 0;
+        int dst_h = 0;
+        // resize opengl widget - mode: kNERtcVideoScaleFit
+        double wnd_ratio = show_w * 1.0 / show_h;
+        double texture_ratio = width * 1.0 / height;
+        if (wnd_ratio > texture_ratio) {
+            int rendering_box_width = show_h * width / height;
+            dst_w = rendering_box_width;
+            dst_h = show_h;
+            dst_x = show_x + (show_w - rendering_box_width) / 2;
+            dst_y = show_y;
+        } else {
+            int rendering_box_height = show_w * height / width;
+            dst_w = show_w;
+            dst_h = rendering_box_height;
+            dst_x = show_x;
+            dst_y = show_y + (show_h - rendering_box_height) / 2;
+        }
+        setGeometry(dst_x, dst_y, dst_w, dst_h);
+
+        video_w = width;
+        video_h = height;
+    }
     update();
 }
 
 void YuvRender::initializeGL()
 {
+    show_x = geometry().x();
+    show_y = geometry().y();
+    show_w = geometry().width();
+    show_h = geometry().height();
+
     initializeOpenGLFunctions();
-    glEnable(GL_DEPTH_TEST);
+//    glEnable(GL_DEPTH_TEST);
 
     static const GLfloat vertices[]{
         //顶点坐标
@@ -119,9 +148,11 @@ void YuvRender::initializeGL()
 
 void YuvRender::paintGL()
 {
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // fix render abnormal when resolution is special, such as 1226*784
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, idY);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, video_w, video_h, 0, GL_RED, GL_UNSIGNED_BYTE, data_y.data());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, video_w, video_h, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, data_y.data());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -129,7 +160,7 @@ void YuvRender::paintGL()
 
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, idU);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, video_w >> 1, video_h >> 1, 0, GL_RED, GL_UNSIGNED_BYTE, data_u.data());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, video_w >> 1, video_h >> 1, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, data_u.data());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -137,7 +168,7 @@ void YuvRender::paintGL()
 
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D,idV);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, video_w >> 1, video_h >> 1, 0, GL_RED, GL_UNSIGNED_BYTE, data_v.data());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, video_w >> 1, video_h >> 1, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, data_v.data());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -148,4 +179,3 @@ void YuvRender::paintGL()
     glUniform1i(textureUniformV, 2);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
-

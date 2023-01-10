@@ -1,4 +1,4 @@
-/** 
+﻿/** 
 * @file nertc_engine_event_handler.h
 * @brief The interface header file of expansion callback of the NERTC SDK.
 * All parameter descriptions of the NERTC SDK. All string-related parameters (char *) are encoded in UTF-8.
@@ -99,7 +99,7 @@ public:
      * @if Chinese
      * 加入房间回调，表示客户端已经登入服务器。
      * @param cid     客户端加入的房间 ID。
-     * @param uid     用户 ID。 如果在 joinChannel 方法中指定了 uid，此处会返回指定的 ID; 如果未指定 uid，此处将返回云信服务器自动分配的 ID。
+     * @param uid     用户 ID。如果在 joinChannel 方法中指定了 uid，此处会返回指定的 ID; 如果未指定 uid（joinChannel 时uid=0），此处将返回云信服务器自动分配的 ID。
      * @param result  返回结果。
      * @param elapsed 从 joinChannel 开始到发生此事件过去的时间，单位为毫秒。
      * @endif
@@ -132,16 +132,16 @@ public:
 
     /** 
      * @if English
-     * Occurs when the state of network connection is changed.
-     * <br>The callback is triggered when the state of network connection is changed. The callback returns the current state of network connection and the reason why the network state changes.
-     * @param state  The state of current network connection.
-     * @param reason The reason why the network state changes.
+     * Occurs when the state of channel connection is changed.
+     * <br>The callback is triggered when the state of channel connection is changed. The callback returns the current state of channel connection and the reason why the state changes.
+     * @param state     The state of current channel connection.
+     * @param reason    The reason why the state changes.
      * @endif
      * @if Chinese
-     * 网络连接状态已改变回调。
-     * <br>该回调在网络连接状态发生改变的时候触发，并告知用户当前的网络连接状态和引起网络状态改变的原因。
-     * @param state  当前的网络连接状态。
-     * @param reason  引起当前网络连接状态发生改变的原因。
+     * 房间连接状态已改变回调。
+     * <br>该回调在房间连接状态发生改变的时候触发，并告知用户当前的房间连接状态和引起房间状态改变的原因。
+     * @param state     当前的房间连接状态。
+     * @param reason    引起当前房间连接状态发生改变的原因。
      * @endif
      */
     virtual void onConnectionStateChange(NERtcConnectionStateType state, NERtcReasonConnectionChangedType reason) {
@@ -182,7 +182,7 @@ public:
      * @if Chinese
      * 退出房间回调。
      * <br>App 调用 leaveChannel 方法后，SDK 提示 App 退出房间是否成功。
-     * @param result    返回结果。
+     * @param result    返回结果。错误码请参考 #NERtcErrorCode 。在快速切换房间时 code 为 kNERtcErrChannelLeaveBySwitchAction。
      * @endif
      */
     virtual void onLeaveChannel(NERtcErrorCode result) {
@@ -220,15 +220,13 @@ public:
      * @param newRole  The role after the change. 
      * @endif
      * @if Chinese
-     * @note Linux 暂不支持
-     * 
      * 直播场景下用户角色已切换回调。
      * <br>本地用户加入房间后，通过 \ref IRtcEngine::setClientRole "setClientRole" 切换用户角色后会触发此回调。例如主播切换为观众、从观众切换为主播。
      * @note 直播场景下，如果您在加入房间后调用该方法切换用户角色，调用成功后，会触发以下回调：
-     * - 主播切观众，本端触发onClientRoleChanged回调，远端触发\ref nertc::IRtcEngineEventHandler::onUserLeft "onUserLeft"回调。
-     * - 观众切主播，本端触发onClientRoleChanged回调，远端触发\ref nertc::IRtcEngineEventHandler::onUserJoined "onUserJoined"回调。
-     * @param oldRole  切换前的角色。
-     * @param newRole  切换后的角色。
+     * - 主播切观众，本端触发 onClientRoleChanged 回调，远端触发 \ref nertc::IRtcEngineEventHandler::onUserLeft "onUserLeft" 回调。
+     * - 观众切主播，本端触发 onClientRoleChanged 回调，远端触发 \ref nertc::IRtcEngineEventHandler::onUserJoined "onUserJoined" 回调。
+     * @param oldRole  切换前的角色。详细信息请参考 {@link NERtcClientRole}。
+     * @param newRole  切换后的角色。详细信息请参考 {@link NERtcClientRole}。
      * @endif
      */
     virtual void onClientRoleChanged(NERtcClientRole oldRole, NERtcClientRole newRole) {
@@ -244,8 +242,18 @@ public:
      * @param user_name     The name of the remote user who joins the room.
      * @endif
      * @if Chinese
-     * 远端用户加入当前房间回调。
-     * <br>该回调提示有远端用户加入了房间，并返回新加入用户的 ID；如果加入之前，已经有其他用户在房间中了，新加入的用户也会收到这些已有用户加入房间的回调。
+     * 远端用户（通信场景）/主播（直播场景）加入当前频道回调。
+     * - 通信场景下，该回调提示有远端用户加入了频道，并返回新加入用户的 ID；如果加入之前，已经有其他用户在频道中了，新加入的用户也会收到这些已有用户加入频道的回调
+     * - 直播场景下，该回调提示有主播加入了频道，并返回该主播的用户 ID。如果在加入之前，已经有主播在频道中了，新加入的用户也会收到已有主播加入频道的回调。
+
+     * 该回调在如下情况下会被触发：
+     * - 远端用户调用 joinChannel 方法加入房间。
+     * - 远端用户网络中断后重新加入房间。
+     * @note
+     * 直播场景下：
+        * - 主播间能相互收到新主播加入频道的回调，并能获得该主播的用户 ID。
+        * - 观众也能收到新主播加入频道的回调，并能获得该主播的用户 ID。
+        * - 当 Web 端加入直播频道时，只要 Web 端有推流，SDK 会默认该 Web 端为主播，并触发该回调。
      * @param uid           新加入房间的远端用户 ID。
      * @param user_name     新加入房间的远端用户名。
      * @endif
@@ -253,6 +261,43 @@ public:
     virtual void onUserJoined(uid_t uid, const char * user_name) {
         (void)uid;
         (void)user_name;
+    }
+
+    /**
+     * @if English
+     * Occurs when a remote user joins the current room.
+     * <br>The callback prompts that a remote user joins the room and returns the ID of the user that joins the room. If
+     the user ID already exists, the remote user also receives a message that the user already joins the room, which is
+     returned by the callback.
+     * @param uid           The ID of the user that joins the room.
+     * @param user_name     The name of the remote user who joins the room.
+     * @since V4.6.25
+     * @endif
+     * @if Chinese
+     * 远端用户（通信场景）/主播（直播场景）加入当前频道回调。
+     * - 通信场景下，该回调提示有远端用户加入了频道，并返回新加入用户的
+     ID；如果加入之前，已经有其他用户在频道中了，新加入的用户也会收到这些已有用户加入频道的回调
+     * - 直播场景下，该回调提示有主播加入了频道，并返回该主播的用户
+     ID。如果在加入之前，已经有主播在频道中了，新加入的用户也会收到已有主播加入频道的回调。
+
+     * 该回调在如下情况下会被触发：
+     * - 远端用户调用 joinChannel 方法加入房间。
+     * - 远端用户网络中断后重新加入房间。
+     * @note
+     * 直播场景下：
+        * - 主播间能相互收到新主播加入频道的回调，并能获得该主播的用户 ID。
+        * - 观众也能收到新主播加入频道的回调，并能获得该主播的用户 ID。
+        * - 当 Web 端加入直播频道时，只要 Web 端有推流，SDK 会默认该 Web 端为主播，并触发该回调。
+     * 此回调与 {onUserJoined(uid_t, const char*, const char*)}会同时回调，建议使用此回调，禁止同时处理2个回调。
+     * @param uid           新加入房间的远端用户 ID。
+     * @param user_name     新加入房间的远端用户名。
+     * @param join_extra_info 远端用户加入的额外信息
+     * @endif
+     */
+    virtual void onUserJoined(uid_t uid, const char* user_name, NERtcUserJoinExtraInfo join_extra_info) {
+        (void)uid;
+        (void)user_name;
+        (void)join_extra_info;
     }
 
     /** 
@@ -271,12 +316,55 @@ public:
      * - 超时掉线的依据是，在一定时间内（40~50s），用户没有收到对方的任何数据包，则判定为对方掉线。
      * @param uid           离开房间的远端用户 ID。
      * @param reason        远端用户离开原因。
+     * - kNERtcSessionLeaveNormal(0)：正常离开。
+     * - kNERtcSessionLeaveForFailOver(1)：用户断线导致离开房间。
+     * - kNERTCSessionLeaveForUpdate(2)：用户因 Failover 导致离开房间，仅 SDK 内部使用。
+     * - kNERtcSessionLeaveForKick(3)：用户被踢导致离开房间。
+     * - kNERtcSessionLeaveTimeout(4)：用户超时退出房间。
      * @endif
      */
     virtual void onUserLeft(uid_t uid, NERtcSessionLeaveReason reason) {
         (void)uid;
         (void)reason;
     }
+
+    /**
+     * @if English
+     * Occurs when a remote user leaves a room.
+     * <br>A message is returned indicates that a remote user leaves the room or becomes disconnected. In most cases, a
+     * user leaves a room due to the following reasons: The user exit the room or connections time out.
+     * - When a user leaves a room, remote users will receive callback notifications that users leave the room. In this
+     * way, users can be specified to leave the room.
+     * - If the connection times out, and the user does not receive data packets for a time period of 40 to 50 seconds,
+     * then the user becomes disconnected.
+     * @param uid           The ID of the user that leaves the room.
+     * @param reason        The reason why remote user leaves.
+     * @since V4.6.25
+     * @endif
+     * @if Chinese
+     * 远端用户离开当前房间的回调。
+     * <br>提示有远端用户离开了房间（或掉线）。通常情况下，用户离开房间有两个原因，即正常离开和超时掉线：
+     * - 正常离开的时候，远端用户会收到正常离开房间的回调提醒，判断用户离开房间。
+     * - 超时掉线的依据是，在一定时间内（40~50s），用户没有收到对方的任何数据包，则判定为对方掉线。
+     * @note
+     * 此回调与 {onUserLeft(uid_t, NERtcSessionLeaveReason, const
+     * char*)}会同时回调，建议使用此回调，禁止同时处理2个回调。
+     * @param uid              离开房间的远端用户 ID。
+     * @param reason           远端用户离开原因。
+     * @param leave_extra_info 远端用户加入的额外信息。
+     * - kNERtcSessionLeaveNormal(0)：正常离开。
+     * - kNERtcSessionLeaveForFailOver(1)：用户断线导致离开房间。
+     * - kNERTCSessionLeaveForUpdate(2)：用户因 Failover 导致离开房间，仅 SDK 内部使用。
+     * - kNERtcSessionLeaveForKick(3)：用户被踢导致离开房间。
+     * - kNERtcSessionLeaveTimeout(4)：用户超时退出房间。
+     * @endif
+     */
+    virtual void onUserLeft(uid_t uid, NERtcSessionLeaveReason reason, NERtcUserJoinExtraInfo leave_extra_info) {
+        (void)uid;
+        (void)reason;
+        (void)leave_extra_info;
+    }
+
     /** 
      * @if English
      * Occurs when a remote user enables audio.
@@ -284,6 +372,7 @@ public:
      * @endif
      * @if Chinese
      * 远端用户开启音频的回调。
+     * @note 该回调由远端用户调用 enableLocalAudio 方法开启音频采集和发送触发。
      * @param uid           远端用户ID。
      * @endif
      */
@@ -297,6 +386,7 @@ public:
      * @endif
      * @if Chinese
      * 远端用户停用音频的回调。
+     * @note 该回调由远端用户调用 enableLocalAudio 方法关闭音频采集和发送触发。
      * @param uid           远端用户ID。
      * @endif
      */
@@ -311,6 +401,7 @@ public:
      * @endif
      * @if Chinese
      * 远端用户开启视频的回调。
+     * <br> 启用后，用户可以进行视频通话或直播。
      * @param uid           远端用户ID。
      * @param max_profile   视频编码的分辨率，用于衡量编码质量。
      * @endif
@@ -326,6 +417,7 @@ public:
      * @endif
      * @if Chinese
      * 远端用户停用视频的回调。
+     * <br> 关闭后，用户只能进行语音通话或者直播。
      * @param uid           远端用户ID。
      * @endif
      */

@@ -1,4 +1,4 @@
-/** @file nertc_engine_event_handler_ex.h
+﻿/** @file nertc_engine_event_handler_ex.h
 * @brief The interface header file of expansion callback of the NERTC SDK.
 * All parameter descriptions of the NERTC SDK. All string-related parameters (char *) are encoded in UTF-8.
 * @copyright (c) 2021, NetEase Inc. All rights reserved.
@@ -40,8 +40,6 @@ public:
      * 
      * @endif
      * @if Chinese
-     * @note Linux 暂不支持
-     * 
      * 远端用户开启屏幕共享辅流通道的回调。
      * @param uid           远端用户 ID。
      * @param max_profile   最大分辨率。
@@ -58,8 +56,6 @@ public:
      * 
      * @endif
      * @if Chinese
-     * @note Linux 暂不支持
-     * 
      * 远端用户停止屏幕共享辅流通道的回调。
      * @param uid   远端用户ID。
      * @endif
@@ -76,11 +72,9 @@ public:
      * @param status    Screen capture status. For more information, see #NERtcScreenCaptureStatus.
      * @endif
      * @if Chinese
-     * @note Linux 暂不支持
-     * 
      * 屏幕共享状态变化回调。
-     * <br>该方法仅适用于 Windows 平台。
      * @since V4.2.0
+     * @note macOS 平台自 V4.6.0 支持此回调。
      * @param status    屏幕共享状态。详细信息请参考 #NERtcScreenCaptureStatus 。
      * @endif
      */
@@ -101,6 +95,36 @@ public:
         (void)uid;
         (void)max_profile;
     }
+    /**
+     * @if English
+     * Occurs when a remote user enables the audio substream.
+     * @since V4.6.10
+     * @param uid Remote user ID.
+     * @endif
+     * @if Chinese
+     * 远端用户开启音频辅流回调。
+     * @since V4.6.10
+     * @param uid 远端用户 ID。
+     * @endif
+     */
+    virtual void onUserSubStreamAudioStart(uid_t uid) { 
+        (void)uid; 
+    }
+    /**
+     * @if English
+     * Occurs when a remote user stops the audio substream.
+     * @since V4.6.10
+     * @param uid remote user ID.
+     * @endif
+     * @if Chinese
+     * 远端用户停用音频辅流回调。
+     * @since V4.6.10
+     * @param uid 远端用户 ID。
+     * @endif
+     */
+    virtual void onUserSubStreamAudioStop(uid_t uid) {
+        (void)uid; 
+    }
     /** 
      * @if English
      * Callbacks that specify whether to mute remote users.
@@ -109,11 +133,34 @@ public:
      * @endif
      * @if Chinese
      * 远端用户是否静音的回调。
+     * @note 该回调由远端用户调用 muteLocalAudioStream 方法开启或关闭音频发送触发。
      * @param uid       远端用户ID。
      * @param mute      是否静音。
      * @endif
      */
     virtual void onUserAudioMute(uid_t uid, bool mute) {
+        (void)uid;
+        (void)mute;
+    }
+    /** 
+     * @if English
+     * Occurs when a remote user pauses or resumes publishing the audio substream.
+     * @since V4.6.10
+     * @param uid   User ID indicating which user perform the operation.
+     * @param mute indicates if the audio substream is stopped.
+     *               - true: stops publishing the audio substream.
+     *               - false: resumes publishing the audio substream.
+     * @endif
+     * @if Chinese
+     * 远端用户暂停或恢复发送音频辅流的回调。
+     * @since V4.6.10
+     * @param uid 远端用户ID。
+     * @param mute 是否停止发送音频辅流。
+     *               - true：该用户已暂停发送音频辅流。
+     *               - false：该用户已恢复发送音频辅流。
+     * @endif
+     */
+    virtual void onUserSubStreamAudioMute(uid_t uid, bool mute) {
         (void)uid;
         (void)mute;
     }
@@ -125,11 +172,51 @@ public:
      * @endif
      * @if Chinese
      * 远端用户暂停或恢复发送视频流的回调。
+     * <br>当远端用户调用 muteLocalVideoStream 取消或者恢复发布视频流时，SDK会触发该回调向本地用户报告远程用户的发流状况。
+     * @note 该回调仅在远端用户的视频主流状态改变时会触发，若您希望同时接收到远端用户视频辅流状态变更的通知，请监听 \ref IRtcEngineEventHandlerEx::onUserVideoMute(NERtcVideoStreamType videoStreamType, uid_t uid, bool mute) "onUserVideoMute" 回调。
      * @param uid       远端用户ID。
-     * @param mute      是否禁视频流。
+     * @param mute      是否暂停发送视频流。
+        * - true：该用户已暂停发送视频流。
+        * = false：该用户已恢复发送视频流。
      * @endif
      */
     virtual void onUserVideoMute(uid_t uid, bool mute) {
+        (void)uid;
+        (void)mute;
+    }
+
+    /**
+     * @if Chinese
+     * 远端用户暂停或恢复发送视频回调。
+     * <br>当远端用户调用 \ref IRtcEngineEx::muteLocalVideoStream "muteLocalVideoStream" 方法取消或者恢复发布视频流时，SDK 会触发该回调向本地用户通知远端用户的发流情况。
+     * @since V4.6.20
+     * @par 参数说明
+     * <table>
+     *  <tr>
+     *      <th>**参数名称**</th>
+     *      <th>**类型**</th>
+     *      <th>**描述**</th>
+     *  </tr>
+     *  <tr>
+     *      <td>videoStreamType</td>
+     *      <td> \ref nertc::NERtcVideoStreamType "NERtcVideoStreamType"</td>
+     *      <td>视频通道类型：<ul><li>kNERTCVideoStreamMain：主流。<li>kNERtcVideoStreamSub：辅流。</td>
+     *  </tr>
+     *  <tr>
+     *      <td>uid</td>
+     *      <td>uid_t</td>
+     *      <td>用户 ID，提示是哪个用户的视频流。</td>
+     *  </tr>
+     *  <tr>
+     *      <td>mute</td>
+     *      <td>bool</td>
+     *      <td>是否暂停发送视频流：<ul><li>true：该用户已暂停发送视频流。<li>false：该用户已恢复发送视频流。</td>
+     *  </tr>
+     * </table>
+     * @endif
+     */
+    virtual void onUserVideoMute(NERtcVideoStreamType videoStreamType, uid_t uid, bool mute) {
+        (void)videoStreamType;
         (void)uid;
         (void)mute;
     }
@@ -210,11 +297,11 @@ public:
         (void)uid;
     }
 
-    /** 
+    /**
      * @if English
      * Occurs when the first video frame from a remote user is displayed.
      * <br>If the first video frame from a remote user is displayed in the view, the callback is triggered.
-     * @param uid       The ID of a user whose audio streams are sent. 
+     * @param uid       The ID of a user whose audio streams are sent.
      * @endif
      * @if Chinese
      * 已显示首帧远端视频的回调。
@@ -223,7 +310,37 @@ public:
      * @endif
      */
     virtual void onFirstVideoDataReceived(uid_t uid) {
+      (void)uid;
+    }
+
+    /**
+     * @if Chinese
+     * 已显示首帧远端视频的回调。
+     * <br>当远端视频的第一帧画面显示在视窗上时，会触发此回调。
+     * @since V4.6.20
+     * @par 参数说明
+     * <table>
+     *  <tr>
+     *      <th>**参数名称**</th>
+     *      <th>**类型**</th>
+     *      <th>**描述**</th>
+     *  </tr>
+     *  <tr>
+     *      <td>type</td>
+     *      <td>see #NERtcVideoStreamType</td>
+     *      <td>视频通道类型：<ul><li>kNERTCVideoStreamMain：主流。<li>kNERtcVideoStreamSub：辅流。</td>
+     *  </tr>
+     *  <tr>
+     *      <td>uid</td>
+     *      <td>uid_t</td>
+     *      <td>用户 ID，提示是哪个用户的视频流。</td>
+     *  </tr>
+     * </table>
+     * @endif
+     */
+    virtual void onFirstVideoDataReceived(NERtcVideoStreamType type, uid_t uid) {
         (void)uid;
+        (void)type;
     } 
 
     /** 
@@ -240,23 +357,66 @@ public:
         (void)uid;
     }
 
-    /** 
+    /**
      * @if English
-     * Occurs when the remote video is received and decoded. 
-     * <br>If the engine receives the first frame of remote video streams, the callback is triggered. 
+     * Occurs when the remote video is received and decoded.
+     * <br>If the engine receives the first frame of remote video streams, the callback is triggered.
      * @param uid       The ID of a user whose audio streams are sent.
      * @param width     The width of video streams (px).
      * @param height    The height of video streams(px).
      * @endif
      * @if Chinese
      * 已接收到远端视频并完成解码的回调。
-     * <br>引擎收到第一帧远端视频流并解码成功时，触发此调用。 
+     * <br>引擎收到第一帧远端视频流并解码成功时，触发此调用。
+     * @note 该回调仅在接收远端用户的主流视频首帧并完成解码时会触发，若您希望同时接收到接收辅流的相关通知，请监听 \ref IRtcEngineEventHandlerEx::onFirstVideoFrameDecoded(NERtcVideoStreamType type, uid_t uid, uint32_t width, uint32_t height) "onFirstVideoFrameDecoded" 回调。
      * @param uid       用户 ID，指定是哪个用户的视频流。
      * @param width     视频流宽（px）。
      * @param height    视频流高（px）。
      * @endif
      */
     virtual void onFirstVideoFrameDecoded(uid_t uid, uint32_t width, uint32_t height) {
+      (void)uid;
+      (void)width;
+      (void)height;
+    }
+
+    /**
+     * @if Chinese
+     * 已接收到远端视频首帧并完成解码的回调。
+     * <br>当 SDK 收到远端视频的第一帧并解码成功时，会触发该回调。应用层可在该回调中设置此用户的视频画布。
+     * @since V4.6.20
+     * @par 参数说明
+     * <table>
+     *  <tr>
+     *      <th>**参数名称**</th>
+     *      <th>**类型**</th>
+     *      <th>**描述**</th>
+     *  </tr>
+     *  <tr>
+     *      <td>type</td>
+     *      <td>see #NERtcVideoStreamType</td>
+     *      <td>视频通道类型：<ul><li>kNERTCVideoStreamMain：主流。<li>kNERtcVideoStreamSub：辅流。</td>
+     *  </tr>
+     *  <tr>
+     *      <td>uid</td>
+     *      <td>uid_t</td>
+     *      <td>用户 ID，提示是哪个用户的视频流。</td>
+     *  </tr>
+     *  <tr>
+     *      <td>width</td>
+     *      <td>uint32_t</td>
+     *      <td>首帧视频的宽度，单位为 px。</td>
+     *  </tr>
+     *  <tr>
+     *      <td>height</td>
+     *      <td>uint32_t</td>
+     *      <td>首帧视频的高度，单位为 px。</td>
+     *  </tr>
+     * </table>
+     * @endif
+     */
+    virtual void onFirstVideoFrameDecoded(NERtcVideoStreamType type, uid_t uid, uint32_t width, uint32_t height) {
+        (void)type;
         (void)uid;
         (void)width;
         (void)height;
@@ -275,8 +435,6 @@ public:
      * @param rotation  The video rotation angle. 
      * @endif
      * @if Chinese
-     * @note Linux 暂不支持
-     * 
      * 采集视频数据回调。
 
      * @param data      采集视频数据。
@@ -318,8 +476,6 @@ public:
      * @param error_code    The error code. For more information, see #NERtcAudioMixingErrorCode.
      * @endif
      * @if Chinese
-     * @note Linux 暂不支持
-     * 
      * 本地用户的音乐文件播放状态改变回调。
      * <br>调用 startAudioMixing 播放混音音乐文件后，当音乐文件的播放状态发生改变时，会触发该回调。
      * - 如果播放音乐文件正常结束，state 会返回相应的状态码 kNERtcAudioMixingStateFinished，error_code 返回 kNERtcAudioMixingErrorOK。
@@ -341,8 +497,6 @@ public:
      * @param timestamp_ms      The position of the music file playing. Unit: milliseconds. 
      * @endif
      * @if Chinese
-     * @note Linux 暂不支持
-     * 
      * 本地用户的音乐文件播放进度回调。
      * <br>调用 startAudioMixing 播放混音音乐文件后，当音乐文件的播放进度改变时，会触发该回调。
      * @param timestamp_ms      音乐文件播放进度，单位为毫秒
@@ -359,8 +513,6 @@ public:
      * @param effect_id         The ID of the specified audio effect. Each audio effect has a unique ID.
      * @endif
      * @if Chinese
-     * @note Linux 暂不支持
-     * 
      * 本地音效文件播放已结束回调。
      * <br>当播放音效结束后，会触发该回调。
      * @param effect_id         指定音效的 ID。每个音效均有唯一的 ID。
@@ -372,6 +524,7 @@ public:
 
     /** 
      * @if English
+     * @deprecated The callback method is deprecated.
      * Occurs when the system prompts current local audio volume.
      * - This callback is disabled by default. You can enable the callback by calling the \ref IRtcEngineEx::enableAudioVolumeIndication "enableAudioVolumeIndication" method.
      * - After the callback is enabled, if a local user speaks, the SDK triggers the callback based on the time interval specified in the \ref IRtcEngineEx::enableAudioVolumeIndication "enableAudioVolumeIndication" method.
@@ -379,6 +532,7 @@ public:
      * @param volume    The volume of audio mixing. Value range: 0 to 100.
      * @endif
      * @if Chinese
+     * @deprecated 该回调方法已废弃。
      * 提示房间内本地用户瞬时音量的回调。
      * - 该回调默认禁用。可以通过 \ref IRtcEngineEx::enableAudioVolumeIndication "enableAudioVolumeIndication" 方法开启。
      * - 开启后，本地用户说话，SDK 会按  \ref IRtcEngineEx::enableAudioVolumeIndication "enableAudioVolumeIndication" 方法中设置的时间间隔触发该回调。
@@ -389,7 +543,30 @@ public:
     virtual void onLocalAudioVolumeIndication(int volume) {
         (void)volume;
     }
-
+    
+    /**
+     * @if English
+     * Occurs when the system prompts current local audio volume.
+     * - This callback is disabled by default. You can enable the callback by calling the \ref IRtcEngineEx::enableAudioVolumeIndication "enableAudioVolumeIndication" method.
+     * - After the callback is enabled, if a local user speaks, the SDK triggers the callback based on the time interval specified in the \ref IRtcEngineEx::enableAudioVolumeIndication "enableAudioVolumeIndication" method.
+     * - If a local user sets a mute by calling \ref IRtcEngineEx::muteLocalAudioStream "muteLocalAudioStream", the SDK sets the value of volume as 0, and calls back to the application layer.
+     * @param volume    The volume of audio mixing. Value range: 0 to 100.
+     * @param enableVad  Whether human voice is detected.
+     * @endif
+     * @if Chinese
+     * 提示房间内本地用户瞬时音量的回调。
+     * - 该回调默认禁用。可以通过 \ref IRtcEngineEx::enableAudioVolumeIndication "enableAudioVolumeIndication" 方法开启。
+     * - 开启后，本地用户说话，SDK 会按  \ref IRtcEngineEx::enableAudioVolumeIndication "enableAudioVolumeIndication" 方法中设置的时间间隔触发该回调。
+     * - 如果本地用户将自己静音（调用了 \ref IRtcEngineEx::muteLocalAudioStream "muteLocalAudioStream"），SDK 将音量设置为 0 后回调给应用层。
+     * @param volume    （混音后的）音量，取值范围为 [0,100]。
+     * @param enable_vad  是否检测到人声。
+     * @endif
+     */
+    virtual void onLocalAudioVolumeIndication(int volume, bool enable_vad) {
+        (void)volume;
+        (void)enable_vad;
+    }
+    
     /** 
      * @if English
      * Occurs when the system prompts the active speaker and the audio volume.
@@ -431,8 +608,6 @@ public:
      * - Other values: Failure.
      * @endif
      * @if Chinese
-     * @note Linux 暂不支持
-     * 
      * 通知添加直播任务结果。
      * <br>该回调异步返回 \ref IRtcEngineEx::addLiveStreamTask "addLiveStreamTask" 接口的调用结果；实际推流状态参考 \ref IRtcEngineEventHandlerEx::onLiveStreamState "onLiveStreamState"
      * @param task_id       任务id
@@ -459,8 +634,6 @@ public:
      * - Other values: Failure.
      * @endif
      * @if Chinese
-     * @note Linux 暂不支持
-     * 
      * 通知更新直播任务结果。
      * 该回调异步返回 \ref IRtcEngineEx::updateLiveStreamTask "updateLiveStreamTask" 接口的调用结果；实际推流状态参考 \ref IRtcEngineEventHandlerEx::onLiveStreamState "onLiveStreamState"
      * @param task_id       任务id
@@ -486,8 +659,6 @@ public:
      * - Other values: Failure.
      * @endif
      * @if Chinese
-     * @note Linux 暂不支持
-     * 
      * 通知删除直播任务结果。
      * <br>该回调异步返回 \ref IRtcEngineEx::removeLiveStreamTask "removeLiveStreamTask" 接口的调用结果；实际推流状态参考 \ref IRtcEngineEventHandlerEx::onLiveStreamState "onLiveStreamState"
      *  @param task_id      任务id
@@ -513,8 +684,6 @@ public:
      * - 511: Pushing ends.
      * @endif
      * @if Chinese
-     * @note Linux 暂不支持
-     * 
      * 通知直播推流状态
      * @note 该回调在通话中有效。
      * @param task_id       任务id
@@ -584,8 +753,6 @@ public:
      * @param file_path     The path based on which the recording file is stored.
      * @endif
      * @if Chinese
-     * @note Linux 暂不支持
-     * 
      * 音频录制状态回调。
      * @param code          音频录制状态码。详细信息请参考 NERtcAudioRecordingCode。
      * @param file_path     音频录制文件保存路径。
@@ -604,8 +771,6 @@ public:
      * @param channel_name  The name of the destination room where the media streams are relayed. 
      * @endif
      * @if Chinese
-     * @note Linux 暂不支持
-     * 
      * 跨房间媒体流转发状态发生改变回调。
      * @since V4.3.0
      * @param state         当前跨房间媒体流转发状态。详细信息请参考 #NERtcChannelMediaRelayState
@@ -626,8 +791,6 @@ public:
      * @param error         Specific error codes.
      * @endif
      * @if Chinese
-     * @note Linux 暂不支持
-     * 
      * 媒体流相关转发事件回调。
      * @since V4.3.0
      * @param event         当前媒体流转发事件。详细信息请参考 #NERtcChannelMediaRelayEvent 。
@@ -652,8 +815,6 @@ public:
      * @param stream_type   The type of the video stream, such as mainstream and substream. 
      * @endif
      * @if Chinese
-     * @note Linux 暂不支持
-     * 
      * 本地发布流已回退为音频流、或已恢复为音视频流回调。
      * <br>如果您调用了设置本地推流回退选项 setLocalPublishFallbackOption 接口，并将 option 设置为 #kNERtcStreamFallbackAudioOnly 后，当上行网络环境不理想、本地发布的媒体流回退为音频流时，或当上行网络改善、媒体流恢复为音视频流时，会触发该回调。 
      * @since V4.3.0
@@ -679,8 +840,6 @@ public:
      * @param stream_type   The type of the video stream, such as mainstream and substream. 
      * @endif
      * @if Chinese
-     * @note Linux 暂不支持
-     * 
      * 订阅的远端流已回退为音频流、或已恢复为音视频流回调。
      * <br>如果你调用了设置远端订阅流回退选项 setRemoteSubscribeFallbackOption 接口并将 option 设置 #kNERtcStreamFallbackAudioOnly 后，当下行网络环境不理想、仅接收远端音频流时，或当下行网络改善、恢复订阅音视频流时，会触发该回调。
      * @since V4.3.0
@@ -695,7 +854,166 @@ public:
         (void)uid;
         (void)is_fallback;
     }
+
+    /**
+     * @if English 
+     * Reports the last mile network quality of the local user once every two seconds before the user joins the channel.
+     * <br> After the application calls the startLastmileProbeTest method, this callback reports once every five seconds the uplink and downlink last mile network conditions of the local user before the user joins the channel.
+     * @since V4.5.0
+     * @param quality       The last mile network quality.
+     * @endif
+     * @if Chinese
+     * 通话前网络上下行 last mile 质量状态回调。
+     * <br>该回调描述本地用户在加入房间前的 last mile 网络探测的结果，以打分形式描述上下行网络质量的主观体验，您可以通过该回调预估本地用户在音视频通话中的网络体验。
+     * <br>在调用 startLastmileProbeTest 之后，SDK 会在约 5 秒内返回该回调。
+     * @since V4.5.0
+     * @param quality       网络上下行质量，基于上下行网络的丢包率和抖动计算，探测结果主要反映上行网络的状态。
+     * @endif
+     */
+    virtual void onLastmileQuality(NERtcNetworkQualityType quality) { 
+        (void)quality;
+    }
+
+    /** 
+     * @if English 
+     * Reports the last-mile network probe result.
+     * <br>This callback describes a detailed last-mile network detection report of a local user before joining a channel. The report provides objective data about the upstream and downstream network quality, including network jitter and packet loss rate.  You can use the report to objectively predict the network status of local users during an audio and video call. 
+     * <br>The SDK triggers this callback within 30 seconds after the app calls the startLastmileProbeTest method.
+     * @since V4.5.0
+     * @param result        The uplink and downlink last-mile network probe test result. 
+     * @endif
+     * @if Chinese
+     * 通话前网络上下行 Last mile 质量探测报告回调。
+     * <br>该回调描述本地用户在加入房间前的 last mile 网络探测详细报告，报告中通过客观数据反馈上下行网络质量，包括网络抖动、丢包率等数据。您可以通过该回调客观预测本地用户在音视频通话中的网络状态。
+     * <br>在调用 startLastmileProbeTest 之后，SDK 会在约 30 秒内返回该回调。
+     * @since V4.5.0
+     * @param result        上下行 Last mile 质量探测结果。
+     * @endif
+     */
+    virtual void onLastmileProbeResult(const NERtcLastmileProbeResult& result) { 
+        (void)result; 
+    };
+
+    /**
+     * @if English
+     * Audio/Video Callback when banned by server.
+     * @since v4.6.0
+     * @param isAudioBannedByServer indicates whether to ban the audio.
+     * - true: banned
+     * - false unbanned
+     * @param isVideoBannedByServer indicates whether to ban the video.
+     * - true: banned
+     * - false unbanned
+     * @endif
+     * @if Chinese
+     * 服务端禁言音视频权限变化回调。
+     * @since v4.6.0
+     * @param is_audio_banned 是否禁用音频。
+     * - true：禁用音频。
+     * - false：取消禁用音频。
+     * @param is_video_banned 是否禁用视频。
+     * - true：禁用视频。
+     * - false：取消禁用视频。
+     * @endif
+     */
+    virtual void onMediaRightChange(bool is_audio_banned, bool is_video_banned) {
+        (void)is_audio_banned;
+        (void)is_video_banned;
+    }
+    
+    /**
+     * @if English
+     * Gets notified if the audio driver plug-in is installed (only for Mac)
+     * <br> You can call {@link checkNECastAudioDriver} to install the audio driver plug-in and capture and play audio data in the Mac system
+     * @param  result indicates the result of audio driver plug-in installation. For more information, see {@link NERtcInstallCastAudioDriverResult}.
+     * @endif
+     * @if Chinese
+     * 收到检测安装声卡的内容回调（仅适用于 Mac 系统）。
+     * <br> 在 Mac 系统上，您可以通过调用 checkNECastAudioDriver 为当前系统安装一个音频驱动，并让 SDK 通过该音频驱动捕获当前 Mac 系统播放出的声音。
+     * @param  result 安装虚拟声卡的结果。详细信息请参考 {@link NERtcInstallCastAudioDriverResult}。
+     * @endif
+     */
+    virtual void onCheckNECastAudioDriverResult(NERtcInstallCastAudioDriverResult result) {
+        (void)result;
+    }
+    
+    /**
+     * @if English
+     * Reports whether the virtual background is successfully enabled. (beta feature)
+     * @since v4.6.0
+     * After you call \ref IRtcEngine::enableVirtualBackground "enableVirtualBackground", the SDK triggers this callback
+     * to report whether the virtual background is successfully enabled.
+     * @note If the background image customized in the virtual background is in PNG or JPG format, the triggering of this
+     * callback is delayed until the image is read.
+     * @param enabled Whether the virtual background is successfully enabled:
+     * - true: The virtual background is successfully enabled.
+     * - false: The virtual background is not successfully enabled.
+     * @param reason The reason why the virtual background is not successfully enabled or the message that confirms
+     * success. See #NERtcVirtualBackgroundSourceStateReason.
+     * @endif
+     * @if Chinese
+     * 通知虚拟背景功能是否成功启用的回调。
+     * <br> 调用 \ref IRtcEngineEx::enableVirtualBackground "enableVirtualBackground" 方法后，SDK 返回此回调通知虚拟背景功能是否成功启用。
+     * @since V4.6.0
+     * @note 如果您设置虚拟背景为 PNG 或 JPG 格式的自定义图像，此回调会等到图像被完全读取后才会返回，因此会有一段时间的延迟。
+     * @param enabled 是否成功启用虚拟背景。
+     * - true：成功启用。
+     * - false：未成功启用。
+     * @param reason 虚拟背景功能未成功启用的原因或成功启用虚拟背景功能的通知。详细信息请参考 {@link NERtcVirtualBackgroundSourceStateReason}。
+     * @endif
+     */
+    virtual void onVirtualBackgroundSourceEnabled(bool enabled, NERtcVirtualBackgroundSourceStateReason reason) {
+      (void)enabled;
+      (void)reason;
+    }
+    
+    /**
+     * @if English
+     * Occurs when the local video watermark takes affect.
+     * <br>If you enables the local video watermark by calling \ref nertc::IRtcEngineEx::setLocalVideoWatermarkConfigs "setLocalVideoWatermarkConfigs", the SDK will trigger this callback.
+     * @since V4.6.10
+     * @param videoStreamType Type of video stream, main stream or substream. For more information, see {@link video.NERtcVideoStreamType}.
+     * @param state           Watermark status. For more information, see {@link NERtcConstants.NERtcLocalVideoWatermarkState}.
+     * @endif
+     * @if Chinese
+     * 本地视频水印生效结果回调。
+     * <br>调用 \ref nertc::IRtcEngineEx::setLocalVideoWatermarkConfigs "setLocalVideoWatermarkConfigs" 接口启用本地视频水印后，SDK 会触发此回调。
+     * @since V4.6.10
+     * @param videoStreamType 对应的视频流类型，即主流或辅流。详细信息请参考 {@link NERtcVideoStreamType}。
+     * @param state           水印状态。详细信息请参考 {@link NERtcLocalVideoWatermarkState}。
+     * @endif
+     */
+    virtual void onLocalVideoWatermarkState(NERtcVideoStreamType videoStreamType, NERtcLocalVideoWatermarkState state) {
+        (void)videoStreamType;
+        (void)state;
+    }
+
+	/**
+     * @if Chinese
+     * 权限密钥即将事件回调。
+     * @note
+     - 由于 PermissionKey 具有一定的时效，在通话过程中如果 PermissionKey 即将失效，SDK 会提前触发该回调，提醒 App 更新
+     Token。
+     - 当收到该回调时，用户需要重新在服务端生成新的 PermissionKey，
+     然后调用 \ref IRtcEngineEx::updatePermissionKey "updatePermissionKey" 将新生成的 PermissionKey 传给 SDK。
+     * @endif
+     */
+    virtual void onPermissionKeyWillExpire() {}
+
+    /**
+     * @if Chinese
+     * 更新权限密钥事件回调。
+     * @param key      权限密钥值。
+     * @param error    相关错误码。详细信息请参考 #NERtcErrorCode 。
+     * @param timeout  超时时间，单位秒，成功时有效。
+     * @endif
+     */
+    virtual void onUpdatePermissionKey(const char* key, NERtcErrorCode error, int timeout) {
+        (void)key;
+        (void)error;
+        (void)timeout;
+    }
 };
-} //namespace nertc
+} // namespace nertc
 
 #endif

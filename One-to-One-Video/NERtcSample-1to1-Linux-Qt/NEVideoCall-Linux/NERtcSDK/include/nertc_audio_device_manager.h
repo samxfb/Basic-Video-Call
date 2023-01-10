@@ -260,8 +260,8 @@ public:
      * @return
      * - 0: Success.
      * - Other values: Failure.
-     *  @endif
-     *  @if Chinese
+     * @endif
+     * @if Chinese
      * 静音或取消静音音频采集设备。
      * @param mute 是否静音音频采集设备。
      * - true：静音音频采集设备。
@@ -309,7 +309,10 @@ public:
      * @endif
      * @if Chinese
      * 调节采集信号音量。
-     * @note 该方法仅调节应用程序中的采集信号音量，不修改设备音量。如果需要修改设备音量，请查看设备管理相关接口。
+     * @note 
+     * - 该方法仅调节应用程序中的采集信号音量，不修改设备音量。如果需要修改设备音量，请查看设备管理相关接口。
+     * - 该方法设置内部引擎为启用状态，在 leaveChannel 后设置失效，将恢复至默认。
+     * - 建议设置本地采集音量时使用默认值（100）或小于该值，否则可能会导致音质问题。
      * @param[in] volume 采集录音音量，取值范围为 [0, 400]。其中：
      * - 0: 静音；
      * - 100: 原始音量；
@@ -335,7 +338,9 @@ public:
      * @endif
      * @if Chinese
      * 调节本地播放音量。
-     * @note 该方法仅调节应用程序中音量，不修改设备音量。如果需要修改设备音量，请查看设备管理相关接口。
+     * @note 
+     * - 该方法仅调节应用程序中音量，不修改设备音量。如果需要修改设备音量，请查看设备管理相关接口。
+     * - 建议设置本地播放音量时使用默认值（100）或小于该值，否则可能会导致音质问题。
      * @param[in] volume 播放音量。取值范围为 [0, 400]。其中：
      * - 0:  静音；
      * - 100: 原始音量；
@@ -435,7 +440,6 @@ public:
      * @return
      * - 0: Success.
      * - Other values: Failure.
-
      * @endif
      * @if Chinese
      * 停止播放设备测试。
@@ -460,7 +464,6 @@ public:
      * @return
      * - 0: Success.
      * - Other values: Failure.
-
      * @endif
      * @if Chinese
      * 开始音频设备回路测试。
@@ -485,7 +488,6 @@ public:
      * @return
      * - 0: Success.
      * - Other values: Failure.
-
      * @endif
      * @if Chinese
      * 停止音频设备回路测试。

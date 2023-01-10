@@ -59,7 +59,16 @@ typedef enum
      * 当前客户端设备视频编解码能力与房间不匹配，例如设备不支持 VP8 等编码类型。在此房间中可能无法成功进行视频编解码，即本端可能无法正常显示某些远端的视频画面，同样远端也可能无法显示本端画面。
      * @endif
      */
-    kNERtcWarningChannelAbilityNotMatch = 406,      
+    kNERtcWarningChannelAbilityNotMatch = 406,   
+    /**
+     * @if English
+     * audio asl fallback
+     * @endif
+     * @if Chinese
+     * 音频自动选路回退
+     * @endif
+     */
+    kNERtcWarningASLAudioFallback = 407,
     //ADM module.
     /**
      * @if English

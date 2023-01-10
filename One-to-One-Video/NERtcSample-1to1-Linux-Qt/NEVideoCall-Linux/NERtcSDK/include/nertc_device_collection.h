@@ -58,7 +58,6 @@ public:
      * @return
      * - 0: Success.
      * - Other values: Failure.
-     * 
      * @endif
      * @if Chinese
      * 获取指定 index 的设备信息。

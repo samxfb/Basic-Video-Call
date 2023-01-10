@@ -40,6 +40,10 @@ private:
     std::vector<unsigned char> data_y;
     std::vector<unsigned char> data_u;
     std::vector<unsigned char> data_v;
-};
 
+    int show_x = 0;
+    int show_y = 0;
+    int show_w = 0;
+    int show_h = 0;
+};
 #endif // YUVRENDER_H
